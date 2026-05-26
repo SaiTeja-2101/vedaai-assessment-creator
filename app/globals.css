@@ -1,26 +1,158 @@
 @import "tailwindcss";
 
+/*
+  VedaAI design tokens — extracted from the Figma dev-mode specs.
+  These are exposed as Tailwind theme values (e.g. bg-orange, text-ink) and as
+  raw CSS variables for use in inline styles where exact px values matter.
+*/
+@theme {
+  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-inter: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Text */
+  --color-ink: #303030; /* Text/Primary */
+  --color-muted: #5e5e5e; /* secondary solid */
+  --color-disabled: #a9a9a9;
+
+  /* Brand / accents */
+  --color-orange: #ff5623; /* primary orange */
+  --color-orange-grad-from: #e56820;
+  --color-orange-grad-to: #d45e3e;
+
+  /* Surfaces */
+  --color-dark: #181818; /* primary dark button */
+  --color-create: #272727; /* sidebar create-assignment button */
+  --color-offwhite: #f6f6f6; /* bg-off white primary */
+  --color-offwhite-2: #f0f0f0; /* bg-off white 20% (active nav row) */
+
+  /* Radii */
+  --radius-card: 16px;
+  --radius-pill: 100px;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Secondary text is an 80%-opacity grey in Figma; keep it as a variable. */
+  --ink-soft: rgba(94, 94, 94, 0.8);
+
+  /* App canvas — light grey the floating white panels sit on. */
+  --canvas: #e8e8e8;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* Nearly every text style in the design uses -0.04em tracking. */
+  letter-spacing: -0.04em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Secondary text helper (80% grey) */
+.text-ink-soft {
+  color: var(--ink-soft);
+}
+
+/*
+  Modern, minimal scrollbar (no arrow buttons) used app-wide.
+  IMPORTANT: don't set the standard `scrollbar-width` on Chromium — when it's
+  present, Chrome ignores the ::-webkit-scrollbar styling below. So the custom
+  pill is webkit-only, and the standard props are scoped to Firefox.
+*/
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(48, 48, 48, 0.28);
+  border-radius: 9999px;
+  border: 3px solid transparent; /* inset pill look */
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(48, 48, 48, 0.45);
+}
+::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+} /* removes up/down arrows */
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+/* Firefox only (no ::-webkit-scrollbar support there) */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(48, 48, 48, 0.28) transparent;
+  }
+}
+
+/* Subtle, premium entrance animation reused by the empty state. */
+@keyframes veda-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise {
+  animation: veda-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes veda-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: veda-float 6s ease-in-out infinite;
+}
+
+/*
+  Print: show only the question paper (`.printable`), not the app shell or the
+  AI banner. The paper expands to the full page for a clean PDF / printout.
+*/
+@media print {
+  body {
+    background: #fff !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  /* Hide everything, then reveal the printable paper and its ancestors. */
+  body * {
+    visibility: hidden;
+  }
+  .printable,
+  .printable * {
+    visibility: visible;
+  }
+  .printable {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    width: 100%;
+    border-radius: 0 !important;
+    background: #fff !important;
+    padding: 24px 32px !important;
+    box-shadow: none !important;
+  }
 }
