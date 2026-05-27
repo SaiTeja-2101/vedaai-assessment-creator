@@ -58,7 +58,12 @@ export type PaperData = {
     name: string;
     title: string;
     instruction: string;
-    questions: { text: string; difficulty: "easy" | "moderate" | "challenging"; marks: number }[];
+    questions: {
+      text: string;
+      difficulty: "easy" | "moderate" | "challenging";
+      marks: number;
+      options?: string[];
+    }[];
   }[];
   answerKey: { n: number; answer: string }[];
 };
@@ -73,4 +78,11 @@ export function regenerateAssignment(id: string) {
   return fetch(`${BASE}/api/assignments/${id}/regenerate`, { method: "POST" }).then(
     json<ApiAssignment>
   );
+}
+
+// Server-rendered PDF (BullMQ job). Returns null if not ready yet.
+export async function fetchServerPdf(id: string): Promise<Blob | null> {
+  const res = await fetch(`${BASE}/api/assignments/${id}/pdf`).catch(() => null);
+  if (!res || !res.ok) return null;
+  return res.blob();
 }

@@ -19,6 +19,7 @@ export const paperSchema = z.object({
               text: z.string().min(1),
               difficulty: z.enum(["easy", "moderate", "challenging"]),
               marks: z.coerce.number().int().positive(),
+              options: z.array(z.string()).optional(),
             })
           )
           .min(1),

@@ -29,9 +29,12 @@ export default function AssignmentCard({ assignment, onDelete }: AssignmentCardP
   return (
     <div className="flex min-h-[116px] flex-col justify-between rounded-3xl bg-white/75 p-5 backdrop-blur-sm transition-shadow duration-200 hover:shadow-[0_12px_32px_rgba(0,0,0,0.07)] lg:min-h-[162px] lg:bg-white lg:p-6">
       <div className="flex items-start justify-between gap-4">
-        <h3 className="text-[18px] font-bold leading-[1.4] text-ink lg:text-[24px] lg:font-extrabold lg:leading-[1.2]">
-          {assignment.title}
-        </h3>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <h3 className="text-[18px] font-bold leading-[1.4] text-ink lg:text-[24px] lg:font-extrabold lg:leading-[1.2]">
+            {assignment.title}
+          </h3>
+          <StatusPill status={assignment.status} />
+        </div>
 
         <div ref={menuRef} className="relative">
           <button
@@ -81,6 +84,31 @@ export default function AssignmentCard({ assignment, onDelete }: AssignmentCardP
         <DateLabel label="Due" value={assignment.dueDate} />
       </div>
     </div>
+  );
+}
+
+function StatusPill({ status }: { status: Assignment["status"] }) {
+  if (status === "completed") {
+    return (
+      <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#E8F7EE] px-2.5 py-0.5 text-[12px] font-semibold text-[#1E9E5A]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#1E9E5A]" />
+        Ready
+      </span>
+    );
+  }
+  if (status === "failed") {
+    return (
+      <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#FDECEC] px-2.5 py-0.5 text-[12px] font-semibold text-[#C53535]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#C53535]" />
+        Failed
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#FFF3E0] px-2.5 py-0.5 text-[12px] font-semibold text-[#C77700]">
+      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#C77700]" />
+      Generating…
+    </span>
   );
 }
 

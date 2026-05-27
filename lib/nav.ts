@@ -19,17 +19,17 @@ export type NavItem = {
 
 /** Primary sidebar navigation (desktop). */
 export const SIDEBAR_NAV: NavItem[] = [
-  { label: "Home", href: "/home", icon: LayoutGrid },
-  { label: "My Groups", href: "/groups", icon: Images },
+  { label: "Home", href: "/home", icon: LayoutGrid, enabled: true },
+  { label: "My Groups", href: "/groups", icon: Images, enabled: true },
   { label: "Assignments", href: "/assignments", icon: FileText, enabled: true },
-  { label: "AI Teacher's Toolkit", href: "/toolkit", icon: BookOpen },
-  { label: "My Library", href: "/library", icon: PieChart },
+  { label: "AI Teacher's Toolkit", href: "/toolkit", icon: BookOpen, enabled: true },
+  { label: "My Library", href: "/library", icon: PieChart, enabled: true },
 ];
 
 /** Bottom tab bar (mobile). */
 export const MOBILE_TABS: NavItem[] = [
-  { label: "Home", href: "/home", icon: LayoutGrid },
+  { label: "Home", href: "/home", icon: LayoutGrid, enabled: true },
   { label: "Assignments", href: "/assignments", icon: FileText, enabled: true },
-  { label: "Library", href: "/library", icon: Library },
-  { label: "AI Toolkit", href: "/toolkit", icon: Sparkles },
+  { label: "Library", href: "/library", icon: Library, enabled: true },
+  { label: "AI Toolkit", href: "/toolkit", icon: Sparkles, enabled: true },
 ];

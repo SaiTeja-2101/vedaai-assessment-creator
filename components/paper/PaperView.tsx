@@ -3,7 +3,17 @@
 import { useState } from "react";
 import { Download, RefreshCw } from "lucide-react";
 import type { Difficulty, QuestionPaper } from "@/lib/paper";
-import { PAPER_INTRO } from "@/lib/paper";
+import { fetchServerPdf } from "@/lib/api";
+import { useProfile } from "@/lib/profile";
+
+function saveBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   easy: "Easy",
@@ -13,12 +23,17 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 
 export default function PaperView({
   paper,
+  assignmentId,
   onRegenerate,
 }: {
   paper: QuestionPaper;
+  assignmentId?: string;
   onRegenerate?: () => void;
 }) {
   const [downloading, setDownloading] = useState(false);
+  const teacherName = useProfile((s) => s.profile?.teacherName);
+  const firstName = teacherName?.trim().split(/\s+/)[0];
+  const intro = `Certainly${firstName ? `, ${firstName}` : ""}! Here is your customized question paper for ${paper.subject}, Class ${paper.className}:`;
   // Continuous question numbering across sections (answer key aligns to it).
   let counter = 0;
 
@@ -29,7 +44,7 @@ export default function PaperView({
         {/* AI banner */}
         <div className="no-print flex flex-col items-start gap-4 rounded-[28px] bg-[#303030] p-5 lg:rounded-[32px] lg:bg-[#181818]/90 lg:px-8 lg:py-6">
           <p className="text-[15px] font-bold leading-[1.4] text-white lg:text-[20px]">
-            {PAPER_INTRO}
+            {intro}
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <button
@@ -38,11 +53,17 @@ export default function PaperView({
               onClick={async () => {
                 setDownloading(true);
                 try {
-                  const { downloadPaperPdf } = await import("./paperPdf");
-                  const name = `${paper.subject}-${paper.className}`
-                    .replace(/[^\w]+/g, "-")
-                    .toLowerCase();
-                  await downloadPaperPdf(paper, `${name || "question-paper"}.pdf`);
+                  const name =
+                    `${paper.subject}-${paper.className}`.replace(/[^\w]+/g, "-").toLowerCase() ||
+                    "question-paper";
+                  // Prefer the server-rendered PDF (BullMQ job); fall back to client generation.
+                  const serverPdf = assignmentId ? await fetchServerPdf(assignmentId) : null;
+                  if (serverPdf) {
+                    saveBlob(serverPdf, `${name}.pdf`);
+                  } else {
+                    const { downloadPaperPdf } = await import("./paperPdf");
+                    await downloadPaperPdf(paper, `${name}.pdf`);
+                  }
                 } finally {
                   setDownloading(false);
                 }
@@ -114,10 +135,24 @@ export default function PaperView({
                   return (
                     <li key={n} className="flex gap-2.5 text-[14px] leading-relaxed text-ink lg:text-[16px]">
                       <span className="font-semibold tabular-nums">{n}.</span>
-                      <span className="flex-1">
-                        [{DIFFICULTY_LABEL[q.difficulty]}] {q.text}{" "}
-                        <span className="whitespace-nowrap">[{q.marks} Marks]</span>
-                      </span>
+                      <div className="flex-1">
+                        <span>
+                          [{DIFFICULTY_LABEL[q.difficulty]}] {q.text}{" "}
+                          <span className="whitespace-nowrap">[{q.marks} Marks]</span>
+                        </span>
+                        {q.options && q.options.length > 0 && (
+                          <ol className="mt-1.5 flex flex-col gap-1 pl-1">
+                            {q.options.map((opt, i) => (
+                              <li key={i} className="flex gap-2">
+                                <span className="font-medium text-ink-soft">
+                                  {String.fromCharCode(65 + i)}.
+                                </span>
+                                <span>{opt}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
                     </li>
                   );
                 })}

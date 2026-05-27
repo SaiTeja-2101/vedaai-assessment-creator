@@ -5,6 +5,7 @@ const questionSchema = new Schema(
     text: { type: String, required: true },
     difficulty: { type: String, enum: ["easy", "moderate", "challenging"], required: true },
     marks: { type: Number, required: true },
+    options: { type: [String], default: undefined },
   },
   { _id: false }
 );
@@ -35,6 +36,7 @@ const paperSchema = new Schema(
     generalInstructions: String,
     sections: { type: [sectionSchema], default: [] },
     answerKey: { type: [answerSchema], default: [] },
+    pdf: Buffer,
   },
   { timestamps: { createdAt: "generatedAt", updatedAt: false } }
 );

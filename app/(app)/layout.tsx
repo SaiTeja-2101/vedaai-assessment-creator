@@ -2,6 +2,8 @@ import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import MobileHeader from "@/components/layout/MobileHeader";
 import MobileTabBar from "@/components/layout/MobileTabBar";
+import Toaster from "@/components/layout/Toaster";
+import RealtimeBridge from "@/components/layout/RealtimeBridge";
 
 /**
  * Shared application shell.
@@ -26,6 +28,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       <MobileTabBar className="lg:hidden" />
+      <RealtimeBridge />
+      <Toaster />
     </div>
   );
 }

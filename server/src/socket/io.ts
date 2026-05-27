@@ -20,10 +20,20 @@ export function initSocket(server: HttpServer) {
 type StatusPayload = {
   assignmentId: string;
   status: "queued" | "processing" | "completed" | "failed";
+  stage?: string;
+  progress?: number;
+  title?: string;
   paperId?: string;
   error?: string;
 };
 
 export function emitStatus(payload: StatusPayload) {
-  io?.to(payload.assignmentId).emit("assignment:status", payload);
+  if (!io) return;
+  // Targeted to the open output page (full detail) + global feed for list/toasts.
+  io.to(payload.assignmentId).emit("assignment:status", payload);
+  io.emit("assignment:activity", {
+    assignmentId: payload.assignmentId,
+    status: payload.status,
+    title: payload.title,
+  });
 }

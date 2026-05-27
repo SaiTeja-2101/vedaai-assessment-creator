@@ -5,8 +5,17 @@ const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:4000";
 export type AssignmentStatus = {
   assignmentId: string;
   status: "queued" | "processing" | "completed" | "failed";
+  stage?: string;
+  progress?: number;
+  title?: string;
   paperId?: string;
   error?: string;
+};
+
+export type AssignmentActivity = {
+  assignmentId: string;
+  status: AssignmentStatus["status"];
+  title?: string;
 };
 
 let socket: Socket | null = null;
@@ -32,4 +41,10 @@ export function subscribeToAssignment(
     s.emit("assignment:unsubscribe", id);
     s.off("assignment:status", handler);
   };
+}
+
+export function subscribeToActivity(onActivity: (a: AssignmentActivity) => void): () => void {
+  const s = getSocket();
+  s.on("assignment:activity", onActivity);
+  return () => s.off("assignment:activity", onActivity);
 }

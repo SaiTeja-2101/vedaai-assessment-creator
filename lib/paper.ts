@@ -4,6 +4,7 @@ export type PaperQuestion = {
   text: string;
   difficulty: Difficulty;
   marks: number;
+  options?: string[];
 };
 
 export type PaperSection = {

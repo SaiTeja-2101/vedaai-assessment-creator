@@ -10,6 +10,7 @@ type AssignmentsState = {
   error: string | null;
   fetch: () => Promise<void>;
   remove: (id: string) => Promise<void>;
+  applyStatus: (id: string, status: Assignment["status"]) => void;
 };
 
 export const useAssignments = create<AssignmentsState>((set, get) => ({
@@ -32,4 +33,6 @@ export const useAssignments = create<AssignmentsState>((set, get) => ({
     await deleteAssignment(id);
     set((s) => ({ items: s.items.filter((x) => x.id !== id) }));
   },
+  applyStatus: (id, status) =>
+    set((s) => ({ items: s.items.map((x) => (x.id === id ? { ...x, status } : x)) })),
 }));

@@ -20,6 +20,7 @@ const s = StyleSheet.create({
   qRow: { flexDirection: "row", marginBottom: 8 },
   qNum: { fontSize: 11, fontFamily: "Helvetica-Bold", width: 20 },
   qText: { fontSize: 11, flex: 1, lineHeight: 1.4 },
+  option: { fontSize: 11, lineHeight: 1.4, marginLeft: 14, marginTop: 2 },
   end: { fontSize: 11, fontFamily: "Helvetica-Bold", textAlign: "center", marginTop: 20, color: "#666" },
   answerHead: { fontSize: 13, fontFamily: "Helvetica-Bold", marginTop: 22, marginBottom: 8 },
   divider: { borderTopWidth: 1, borderTopColor: "#ddd", marginTop: 22, paddingTop: 12 },
@@ -60,9 +61,16 @@ function PaperPdf({ paper }: { paper: PaperData }) {
               return (
                 <View key={n} style={s.qRow} wrap={false}>
                   <Text style={s.qNum}>{n}.</Text>
-                  <Text style={s.qText}>
-                    [{DIFF[q.difficulty] ?? q.difficulty}] {q.text} [{q.marks} Marks]
-                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.qText}>
+                      [{DIFF[q.difficulty] ?? q.difficulty}] {q.text} [{q.marks} Marks]
+                    </Text>
+                    {q.options?.map((opt, i) => (
+                      <Text key={i} style={s.option}>
+                        {String.fromCharCode(65 + i)}. {opt}
+                      </Text>
+                    ))}
+                  </View>
                 </View>
               );
             })}

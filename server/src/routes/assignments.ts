@@ -116,6 +116,20 @@ assignmentsRouter.get("/:id/paper", async (req, res) => {
   res.json(body);
 });
 
+assignmentsRouter.get("/:id/pdf", async (req, res) => {
+  const paper = await QuestionPaper.findOne({ assignmentId: req.params.id })
+    .sort({ generatedAt: -1 })
+    .select("pdf subject className")
+    .catch(() => null);
+  const pdf = paper?.get("pdf") as Buffer | undefined;
+  if (!pdf) return res.status(404).json({ error: "PDF not ready" });
+
+  const name = `${paper?.get("subject") ?? "question-paper"}`.replace(/[^\w]+/g, "-").toLowerCase();
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="${name || "question-paper"}.pdf"`);
+  res.send(pdf);
+});
+
 assignmentsRouter.get("/:id", async (req, res) => {
   const a = await Assignment.findById(req.params.id).catch(() => null);
   if (!a) return res.status(404).json({ error: "Not found" });

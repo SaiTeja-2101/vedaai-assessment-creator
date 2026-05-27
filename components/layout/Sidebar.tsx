@@ -3,10 +3,12 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { Sparkles, Settings } from "lucide-react";
 import Logo from "./Logo";
 import { SIDEBAR_NAV, type NavItem } from "@/lib/nav";
 import { useAssignments } from "@/lib/assignments";
+import { useProfile, logoUrl } from "@/lib/profile";
 
 function NavRow({
   item,
@@ -51,10 +53,16 @@ export default function Sidebar({ className = "" }: { className?: string }) {
   const pathname = usePathname();
   const assignmentsCount = useAssignments((s) => s.items.length);
   const fetchAssignments = useAssignments((s) => s.fetch);
+  const profile = useProfile((s) => s.profile);
+  const fetchProfile = useProfile((s) => s.fetch);
 
   useEffect(() => {
     void fetchAssignments();
-  }, [fetchAssignments]);
+    void fetchProfile();
+  }, [fetchAssignments, fetchProfile]);
+
+  const logo = logoUrl(profile);
+  const initials = (profile?.schoolName ?? "DPS").slice(0, 2).toUpperCase();
 
   return (
     <aside
@@ -97,29 +105,47 @@ export default function Sidebar({ className = "" }: { className?: string }) {
       {/* Bottom group: settings + school profile card */}
       <div className="flex flex-col gap-2">
         <Link
-          href="#"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-200 hover:bg-[var(--color-offwhite)]"
+          href="/settings"
+          aria-current={pathname.startsWith("/settings") ? "page" : undefined}
+          className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-200 ${
+            pathname.startsWith("/settings")
+              ? "bg-[var(--color-offwhite-2)]"
+              : "hover:bg-[var(--color-offwhite)]"
+          }`}
         >
-          <Settings size={20} style={{ color: "var(--ink-soft)" }} />
-          <span className="text-[16px]" style={{ color: "var(--ink-soft)" }}>
+          <Settings
+            size={20}
+            className={pathname.startsWith("/settings") ? "text-ink" : ""}
+            style={pathname.startsWith("/settings") ? undefined : { color: "var(--ink-soft)" }}
+          />
+          <span
+            className={`text-[16px] ${pathname.startsWith("/settings") ? "font-medium text-ink" : ""}`}
+            style={pathname.startsWith("/settings") ? undefined : { color: "var(--ink-soft)" }}
+          >
             Settings
           </span>
         </Link>
 
-        <div className="flex items-center gap-2 rounded-2xl bg-[var(--color-offwhite-2)] p-3">
-          {/* Placeholder avatar until the school mascot asset is provided */}
-          <div className="flex h-14 w-[59px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#FFD7A8] to-[#F0A36B] text-[13px] font-bold text-[#7A4A1E]">
-            DPS
+        <Link
+          href="/settings"
+          className="flex items-center gap-2 rounded-2xl bg-[var(--color-offwhite-2)] p-3 transition-colors hover:bg-[#e9e9e9]"
+        >
+          <div className="flex h-14 w-[52px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#FFD7A8] to-[#F0A36B] text-[14px] font-bold text-[#7A4A1E]">
+            {logo ? (
+              <Image src={logo} alt="" width={52} height={56} className="h-full w-full object-cover" unoptimized />
+            ) : (
+              initials
+            )}
           </div>
           <div className="flex min-w-0 flex-col">
             <span className="truncate text-[16px] font-bold text-ink">
-              Delhi Public School
+              {profile?.schoolName ?? "Delhi Public School"}
             </span>
             <span className="truncate text-[14px] text-[var(--color-muted)]">
-              Bokaro Steel City
+              {profile?.city ?? "Bokaro Steel City"}
             </span>
           </div>
-        </div>
+        </Link>
       </div>
     </aside>
   );
