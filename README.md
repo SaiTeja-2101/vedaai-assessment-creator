@@ -3,7 +3,7 @@
 A tool for teachers to create an assignment, generate a complete question paper with AI, and view or download it as a clean exam paper. Built to the VedaAI Figma designs.
 
 - **Live demo:** https://vedaai-assessment-creator-xj7e.vercel.app
-- **API:** https://vedaai-assessment-creator-3eja.onrender.com/
+- **API:** https://vedaai-assessment-creator-3eja.onrender.com
 
 The teacher fills a short form — assessment name, class, due date, the question types they want (each with a count and marks), optional notes, and an optional image of their own material. That request is queued; a background worker turns it into a structured prompt, calls the LLM, validates the response into a typed paper, stores it, and streams the status back to the browser in real time. The paper page renders it like a real exam and exports a properly formatted PDF.
 
