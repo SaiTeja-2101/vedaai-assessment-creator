@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Filter, Search, Plus } from "lucide-react";
@@ -10,10 +10,21 @@ import EmptyState from "./EmptyState";
 
 export default function AssignmentsView() {
   const router = useRouter();
-  const { items, remove } = useAssignments();
+  const { items, remove, fetch, loaded } = useAssignments();
   const [query, setQuery] = useState("");
 
-  // No assignments at all → empty state.
+  useEffect(() => {
+    void fetch();
+  }, [fetch]);
+
+  if (!loaded) {
+    return (
+      <div className="flex h-full min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-ink/20 border-t-ink/70" />
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return <EmptyState />;
   }

@@ -1,0 +1,1 @@
+- [Code style: no AI-tells](code-style-no-ai-tells.md) — minimal comments, idiomatic, human-written feel

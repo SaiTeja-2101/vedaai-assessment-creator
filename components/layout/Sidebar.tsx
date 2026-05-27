@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sparkles, Settings } from "lucide-react";
@@ -49,6 +50,11 @@ function NavRow({
 export default function Sidebar({ className = "" }: { className?: string }) {
   const pathname = usePathname();
   const assignmentsCount = useAssignments((s) => s.items.length);
+  const fetchAssignments = useAssignments((s) => s.fetch);
+
+  useEffect(() => {
+    void fetchAssignments();
+  }, [fetchAssignments]);
 
   return (
     <aside
