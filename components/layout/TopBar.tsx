@@ -44,7 +44,7 @@ export default function TopBar({ className = "" }: { className?: string }) {
 
   return (
     <header
-      className={`h-[56px] items-center gap-2.5 rounded-2xl bg-white/75 pl-6 pr-3 backdrop-blur-sm ${className}`}
+      className={`relative z-40 h-[56px] items-center gap-2.5 rounded-2xl bg-white/75 pl-6 pr-3 backdrop-blur-sm ${className}`}
     >
       <button
         type="button"

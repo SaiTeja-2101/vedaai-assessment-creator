@@ -27,10 +27,14 @@ export default function AssignmentCard({ assignment, onDelete }: AssignmentCardP
   }, [menuOpen]);
 
   return (
-    <div className="flex min-h-[116px] flex-col justify-between rounded-3xl bg-white/75 p-5 backdrop-blur-sm transition-shadow duration-200 hover:shadow-[0_12px_32px_rgba(0,0,0,0.07)] lg:min-h-[162px] lg:bg-white lg:p-6">
+    <div className="group flex min-h-[116px] flex-col justify-between rounded-3xl bg-white/75 p-5 backdrop-blur-sm transition-shadow duration-200 hover:shadow-[0_12px_32px_rgba(0,0,0,0.07)] lg:min-h-[162px] lg:bg-white lg:p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <h3 className="text-[18px] font-bold leading-[1.4] text-ink lg:text-[24px] lg:font-extrabold lg:leading-[1.2]">
+          <h3
+            onClick={() => router.push(`/assignments/${assignment.id}`)}
+            title="View assignment"
+            className="w-fit cursor-pointer text-[18px] font-bold leading-[1.4] text-ink underline decoration-2 decoration-transparent underline-offset-4 transition-colors duration-200 group-hover:decoration-[rgba(48,48,48,0.3)] lg:text-[24px] lg:font-extrabold lg:leading-[1.2]"
+          >
             {assignment.title}
           </h3>
           <StatusPill status={assignment.status} />
