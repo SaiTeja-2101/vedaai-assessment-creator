@@ -1,6 +1,7 @@
 "use client";
 
-import { Download } from "lucide-react";
+import { useState } from "react";
+import { Download, RefreshCw } from "lucide-react";
 import type { Difficulty, QuestionPaper } from "@/lib/paper";
 import { PAPER_INTRO } from "@/lib/paper";
 
@@ -10,7 +11,14 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   challenging: "Challenging",
 };
 
-export default function PaperView({ paper }: { paper: QuestionPaper }) {
+export default function PaperView({
+  paper,
+  onRegenerate,
+}: {
+  paper: QuestionPaper;
+  onRegenerate?: () => void;
+}) {
+  const [downloading, setDownloading] = useState(false);
   // Continuous question numbering across sections (answer key aligns to it).
   let counter = 0;
 
@@ -23,14 +31,40 @@ export default function PaperView({ paper }: { paper: QuestionPaper }) {
           <p className="text-[15px] font-bold leading-[1.4] text-white lg:text-[20px]">
             {PAPER_INTRO}
           </p>
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="flex h-11 items-center gap-2 rounded-full bg-white px-6 text-[#303030] transition-transform hover:scale-[1.02] active:scale-95"
-          >
-            <Download size={20} />
-            <span className="text-[16px] font-medium">Download as PDF</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              disabled={downloading}
+              onClick={async () => {
+                setDownloading(true);
+                try {
+                  const { downloadPaperPdf } = await import("./paperPdf");
+                  const name = `${paper.subject}-${paper.className}`
+                    .replace(/[^\w]+/g, "-")
+                    .toLowerCase();
+                  await downloadPaperPdf(paper, `${name || "question-paper"}.pdf`);
+                } finally {
+                  setDownloading(false);
+                }
+              }}
+              className="flex h-11 items-center gap-2 rounded-full bg-white px-6 text-[#303030] transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-70"
+            >
+              <Download size={20} />
+              <span className="text-[16px] font-medium">
+                {downloading ? "Preparing…" : "Download as PDF"}
+              </span>
+            </button>
+            {onRegenerate && (
+              <button
+                type="button"
+                onClick={onRegenerate}
+                className="flex h-11 items-center gap-2 rounded-full border border-white/30 px-6 text-white transition-colors hover:bg-white/10"
+              >
+                <RefreshCw size={18} />
+                <span className="text-[16px] font-medium">Regenerate</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* The paper itself */}

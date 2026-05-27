@@ -9,6 +9,7 @@ import {
   QUESTION_TYPES,
   type QuestionRow,
 } from "@/lib/store";
+import { createAssignment } from "@/lib/api";
 import Stepper from "./Stepper";
 import Dropdown from "./Dropdown";
 import FileDropzone from "./FileDropzone";
@@ -18,32 +19,59 @@ import ProgressSteps from "./ProgressSteps";
 export default function CreateAssignmentForm() {
   const router = useRouter();
   const {
-    fileName,
+    title,
+    className,
+    file,
     dueDate,
     rows,
     additionalInfo,
-    setFileName,
+    setTitle,
+    setClassName,
+    setFile,
     setDueDate,
     addRow,
     removeRow,
     updateRow,
     setAdditionalInfo,
+    reset,
   } = useAssignmentDraft();
 
   const [showErrors, setShowErrors] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const { totalQuestions, totalMarks } = totalsFor(rows);
   const usedTypes = rows.map((r) => r.type);
 
+  const titleInvalid = showErrors && !title.trim();
   const dueDateInvalid = showErrors && !dueDate;
   const noRows = rows.length === 0;
   const canAddMore = rows.length < QUESTION_TYPES.length;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     setShowErrors(true);
-    if (!dueDate || noRows) return;
-    // Backend wiring (enqueue generation) lands in the backend phase.
-    // For now persist the draft (already in the store) and advance.
-    router.push("/assignments");
+    setApiError(null);
+    if (!title.trim() || !dueDate || noRows) return;
+
+    setSubmitting(true);
+    try {
+      const created = await createAssignment({
+        title: title.trim(),
+        className: className.trim() || undefined,
+        dueDate,
+        additionalInstructions: additionalInfo || undefined,
+        file: file ?? undefined,
+        questionConfig: rows.map((r) => ({
+          type: r.type,
+          count: r.count,
+          marksEach: r.marks,
+        })),
+      });
+      reset();
+      router.push(`/assignments/${created.id}`);
+    } catch (e) {
+      setApiError(e instanceof Error ? e.message : "Could not create assignment");
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -81,9 +109,37 @@ export default function CreateAssignmentForm() {
         </div>
 
         <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="flex flex-1 flex-col gap-2">
+              <label className="text-[16px] font-bold text-ink">Assessment Name</label>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Quiz on Electricity"
+                className={`h-11 w-full rounded-full border-[1.25px] bg-transparent px-4 text-[16px] font-medium text-ink transition-colors placeholder:text-[var(--color-disabled)] focus:outline-none ${
+                  titleInvalid ? "border-red-400" : "border-[#DADADA] focus:border-[#c4c4c4]"
+                }`}
+              />
+              {titleInvalid && (
+                <span className="text-[13px] font-medium text-red-500">
+                  Please enter an assessment name.
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col gap-2 sm:w-[220px]">
+              <label className="text-[16px] font-bold text-ink">Class</label>
+              <input
+                value={className}
+                onChange={(e) => setClassName(e.target.value)}
+                placeholder="e.g. Grade 8"
+                className="h-11 w-full rounded-full border-[1.25px] border-[#DADADA] bg-transparent px-4 text-[16px] font-medium text-ink transition-colors placeholder:text-[var(--color-disabled)] focus:border-[#c4c4c4] focus:outline-none"
+              />
+            </div>
+          </div>
+
           {/* Upload */}
           <div className="flex flex-col gap-3">
-            <FileDropzone fileName={fileName} onFile={setFileName} />
+            <FileDropzone file={file} onFile={setFile} />
             <p className="text-center text-[16px] font-medium text-[rgba(48,48,48,0.6)]">
               Upload images of your preferred document/image
             </p>
@@ -224,6 +280,12 @@ export default function CreateAssignmentForm() {
         </div>
       </div>
 
+      {apiError && (
+        <p className="w-full max-w-[810px] text-center text-[14px] font-medium text-red-500">
+          {apiError}
+        </p>
+      )}
+
       {/* Footer */}
       <div className="flex w-full max-w-[810px] items-center justify-between">
         <button
@@ -237,10 +299,11 @@ export default function CreateAssignmentForm() {
         <button
           type="button"
           onClick={handleNext}
-          className="flex h-[46px] items-center gap-1 rounded-full bg-[var(--color-dark)] px-6 text-[16px] font-medium text-white shadow-[0_10px_24px_rgba(24,24,24,0.22)] transition-transform hover:scale-[1.02] active:scale-95"
+          disabled={submitting}
+          className="flex h-[46px] items-center gap-1 rounded-full bg-[var(--color-dark)] px-6 text-[16px] font-medium text-white shadow-[0_10px_24px_rgba(24,24,24,0.22)] transition-transform hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Next
-          <ArrowRight size={20} />
+          {submitting ? "Creating…" : "Next"}
+          {!submitting && <ArrowRight size={20} />}
         </button>
       </div>
     </div>

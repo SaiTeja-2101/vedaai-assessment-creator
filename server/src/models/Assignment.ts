@@ -12,7 +12,13 @@ const configSchema = new Schema(
 const assignmentSchema = new Schema(
   {
     title: { type: String, default: "Untitled Assignment" },
+    className: String,
     sourceText: String,
+    sourceFile: {
+      data: Buffer,
+      mimeType: String,
+      name: String,
+    },
     dueDate: { type: Date, required: true },
     questionConfig: { type: [configSchema], default: [] },
     additionalInstructions: String,

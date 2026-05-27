@@ -9,7 +9,7 @@ import { assignmentsRouter } from "./routes/assignments.js";
 
 const app = express();
 app.use(cors({ origin: env.CLIENT_ORIGIN }));
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", mongo: mongoStatus(), redis: redisStatus() });

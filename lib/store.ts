@@ -28,13 +28,19 @@ const defaultRows = (): QuestionRow[] => [
   { id: uid(), type: "Numerical Problems", count: 5, marks: 5 },
 ];
 
+export type UploadedFile = { name: string; mimeType: string; dataBase64: string };
+
 type AssignmentDraft = {
-  fileName: string | null;
+  title: string;
+  className: string;
+  file: UploadedFile | null;
   dueDate: string; // DD-MM-YYYY
   rows: QuestionRow[];
   additionalInfo: string;
 
-  setFileName: (name: string | null) => void;
+  setTitle: (value: string) => void;
+  setClassName: (value: string) => void;
+  setFile: (file: UploadedFile | null) => void;
   setDueDate: (value: string) => void;
   addRow: () => void;
   removeRow: (id: string) => void;
@@ -49,12 +55,16 @@ type AssignmentDraft = {
  * same draft, and it must survive navigation between steps.
  */
 export const useAssignmentDraft = create<AssignmentDraft>((set) => ({
-  fileName: null,
+  title: "",
+  className: "",
+  file: null,
   dueDate: "",
   rows: defaultRows(),
   additionalInfo: "",
 
-  setFileName: (name) => set({ fileName: name }),
+  setTitle: (value) => set({ title: value }),
+  setClassName: (value) => set({ className: value }),
+  setFile: (file) => set({ file }),
   setDueDate: (value) => set({ dueDate: value }),
   addRow: () =>
     set((s) => {
@@ -69,7 +79,7 @@ export const useAssignmentDraft = create<AssignmentDraft>((set) => ({
     })),
   setAdditionalInfo: (value) => set({ additionalInfo: value }),
   reset: () =>
-    set({ fileName: null, dueDate: "", rows: defaultRows(), additionalInfo: "" }),
+    set({ title: "", className: "", file: null, dueDate: "", rows: defaultRows(), additionalInfo: "" }),
 }));
 
 /** Derived totals used by the form. */

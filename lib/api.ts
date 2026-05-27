@@ -11,8 +11,10 @@ export type ApiAssignment = {
 
 export type CreatePayload = {
   title?: string;
+  className?: string;
   dueDate: string;
   additionalInstructions?: string;
+  file?: { name: string; mimeType: string; dataBase64: string };
   questionConfig: { type: string; count: number; marksEach: number }[];
 };
 
@@ -43,4 +45,32 @@ export function getAssignment(id: string) {
 export async function deleteAssignment(id: string) {
   const res = await fetch(`${BASE}/api/assignments/${id}`, { method: "DELETE" });
   if (!res.ok && res.status !== 204) throw new Error(`Delete failed (${res.status})`);
+}
+
+export type PaperData = {
+  schoolName: string;
+  subject: string;
+  className: string;
+  durationMins: number;
+  totalMarks: number;
+  generalInstructions: string;
+  sections: {
+    name: string;
+    title: string;
+    instruction: string;
+    questions: { text: string; difficulty: "easy" | "moderate" | "challenging"; marks: number }[];
+  }[];
+  answerKey: { n: number; answer: string }[];
+};
+
+export async function getPaper(id: string): Promise<PaperData | null> {
+  const res = await fetch(`${BASE}/api/assignments/${id}/paper`, { cache: "no-store" });
+  if (res.status === 404) return null;
+  return json<PaperData>(res);
+}
+
+export function regenerateAssignment(id: string) {
+  return fetch(`${BASE}/api/assignments/${id}/regenerate`, { method: "POST" }).then(
+    json<ApiAssignment>
+  );
 }

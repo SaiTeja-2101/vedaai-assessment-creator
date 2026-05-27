@@ -3,12 +3,16 @@ import { z } from "zod";
 import { Assignment } from "../models/Assignment.js";
 import { QuestionPaper } from "../models/QuestionPaper.js";
 import { enqueueGeneration } from "../queue/queues.js";
+import { redis } from "../queue/redis.js";
 import { toDisplayDate, parseDueDate } from "../lib/dates.js";
 
 export const assignmentsRouter = Router();
 
+const ACCEPTED_FILE_TYPES = ["application/pdf", "image/png", "image/jpeg"];
+
 const createSchema = z.object({
   title: z.string().trim().min(1).optional(),
+  className: z.string().trim().optional(),
   dueDate: z.string().min(1),
   sourceText: z.string().optional(),
   additionalInstructions: z.string().optional(),
@@ -21,6 +25,13 @@ const createSchema = z.object({
       })
     )
     .min(1),
+  file: z
+    .object({
+      name: z.string(),
+      mimeType: z.enum(ACCEPTED_FILE_TYPES as [string, ...string[]]),
+      dataBase64: z.string().min(1),
+    })
+    .optional(),
 });
 
 function serialize(a: InstanceType<typeof Assignment>) {
@@ -47,10 +58,17 @@ assignmentsRouter.post("/", async (req, res) => {
   const due = parseDueDate(parsed.data.dueDate);
   if (!due) return res.status(400).json({ error: "Invalid dueDate" });
 
+  const file = parsed.data.file;
+  const sourceFile = file
+    ? { data: Buffer.from(file.dataBase64, "base64"), mimeType: file.mimeType, name: file.name }
+    : undefined;
+
   const assignment = await Assignment.create({
     title: parsed.data.title,
+    className: parsed.data.className,
     dueDate: due,
     sourceText: parsed.data.sourceText,
+    sourceFile,
     additionalInstructions: parsed.data.additionalInstructions,
     questionConfig: parsed.data.questionConfig,
     status: "queued",
@@ -68,17 +86,23 @@ assignmentsRouter.post("/:id/regenerate", async (req, res) => {
   a.error = undefined;
   a.paperId = undefined;
   await a.save();
+  await redis?.del(`paper:${a._id}`).catch(() => null);
   await enqueueGeneration(String(a._id));
   res.json(serialize(a));
 });
 
 assignmentsRouter.get("/:id/paper", async (req, res) => {
+  const cacheKey = `paper:${req.params.id}`;
+  const cached = await redis?.get(cacheKey).catch(() => null);
+  if (cached) return res.json(JSON.parse(cached));
+
   const paper = await QuestionPaper.findOne({ assignmentId: req.params.id })
     .sort({ generatedAt: -1 })
     .lean()
     .catch(() => null);
   if (!paper) return res.status(404).json({ error: "Paper not ready" });
-  res.json({
+
+  const body = {
     schoolName: paper.schoolName,
     subject: paper.subject,
     className: paper.className,
@@ -87,7 +111,9 @@ assignmentsRouter.get("/:id/paper", async (req, res) => {
     generalInstructions: paper.generalInstructions,
     sections: paper.sections,
     answerKey: paper.answerKey,
-  });
+  };
+  await redis?.set(cacheKey, JSON.stringify(body), "EX", 60 * 60 * 24).catch(() => null);
+  res.json(body);
 });
 
 assignmentsRouter.get("/:id", async (req, res) => {

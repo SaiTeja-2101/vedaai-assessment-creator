@@ -8,6 +8,9 @@ const schema = z.object({
   REDIS_URL: z.string().optional(),
   GROQ_API_KEY: z.string().optional(),
   GROQ_MODEL: z.string().default("llama-3.3-70b-versatile"),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
+  LLM_PROVIDER: z.enum(["gemini", "groq"]).default("gemini"),
 });
 
 const parsed = schema.safeParse(process.env);
