@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Plus, ArrowLeft, ArrowRight, Mic } from "lucide-react";
 import {
@@ -42,10 +42,15 @@ export default function CreateAssignmentForm() {
   const { totalQuestions, totalMarks } = totalsFor(rows);
   const usedTypes = rows.map((r) => r.type);
 
-  const titleInvalid = showErrors && !title.trim();
-  const dueDateInvalid = showErrors && !dueDate;
+  // Errors hide once a valid submit is in flight (prevents a flash while navigating).
+  const titleInvalid = showErrors && !submitting && !title.trim();
+  const dueDateInvalid = showErrors && !submitting && !dueDate;
   const noRows = rows.length === 0;
+  const showNoRows = noRows && showErrors && !submitting;
   const canAddMore = rows.length < QUESTION_TYPES.length;
+
+  // Start fresh next time: clear the draft when leaving the form (after we've navigated away).
+  useEffect(() => () => reset(), [reset]);
 
   const handleNext = async () => {
     setShowErrors(true);
@@ -66,7 +71,6 @@ export default function CreateAssignmentForm() {
           marksEach: r.marks,
         })),
       });
-      reset();
       router.push(`/assignments/${created.id}`);
     } catch (e) {
       setApiError(e instanceof Error ? e.message : "Could not create assignment");
@@ -224,7 +228,7 @@ export default function CreateAssignmentForm() {
               ))}
             </div>
 
-            {noRows && showErrors && (
+            {showNoRows && (
               <span className="text-[13px] font-medium text-red-500">
                 Add at least one question type.
               </span>
