@@ -20,7 +20,9 @@ export default function MobileHeader({ className = "" }: { className?: string })
   return (
     <header className={`sticky top-0 z-30 px-5 pt-4 pb-2 ${className}`}>
       <div className="flex h-14 items-center justify-between rounded-2xl bg-white pl-3 pr-4 shadow-[0px_8px_24px_rgba(0,0,0,0.08)]">
-        <Logo size={28} textSize={20} />
+        <Link href="/assignments" aria-label="VedaAI — Assignments">
+          <Logo size={28} textSize={20} />
+        </Link>
 
         <div className="flex items-center gap-3">
           <button

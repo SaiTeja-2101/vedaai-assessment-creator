@@ -70,9 +70,9 @@ export default function Sidebar({ className = "" }: { className?: string }) {
     >
       {/* Top group: logo, create button, nav (56px gaps per Figma) */}
       <div className="flex flex-col gap-14">
-        <div className="px-1">
+        <Link href="/assignments" className="px-1" aria-label="VedaAI — Assignments">
           <Logo size={40} textSize={28} />
-        </div>
+        </Link>
 
         {/* Create Assignment — dark pill with a soft orange gradient ring */}
         <div className="rounded-full bg-gradient-to-b from-[#F2A074] to-[#E2613A] p-[1.5px] shadow-[0_8px_24px_rgba(255,86,35,0.28)]">
